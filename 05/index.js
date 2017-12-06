@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { performance } = require('perf_hooks');
 
 const testInputString = `0
 3
@@ -25,6 +26,9 @@ function strangeIncrement(value) {
 
 function run(series, modFunction = increment) {
 
+  console.log('Running...');
+  const start = performance.now();
+
   let i = 0;
   let steps = 0;
 
@@ -44,7 +48,12 @@ function run(series, modFunction = increment) {
 
   }
 
-  console.log(steps);
+  const end = performance.now();
+
+  const time = Math.floor((end - start) * 10) / 10;
+
+  console.log(steps, 'steps');
+  console.log('took', time, 'ms');
 
 }
 
