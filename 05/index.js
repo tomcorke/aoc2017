@@ -29,22 +29,20 @@ function run(series, modFunction = increment) {
   console.log('Running...');
   const start = performance.now();
 
-  let i = 0;
+  let index = 0;
   let steps = 0;
 
-  while(i >= 0 && i < series.length) {
+  while(index >= 0 && index < series.length) {
 
-    const instruction = series[i];
+    const instruction = series[index];
 
-    const newI = i + instruction;
+    const newIndex = index + instruction;
     const newInstruction = modFunction(instruction);
 
-    // console.log(i, instruction, newInstruction);
+    series[index] = newInstruction;
+    index = newIndex;
 
-    series[i] = newInstruction;
-    i = newI;
-
-    steps+=1;
+    steps += 1;
 
   }
 
