@@ -62,7 +62,7 @@ function findUnbalanced(input) {
       mappedInput[name].children.forEach(child => console.log(`${child} (${childWeights.find(cw => cw.name === child).weight}): ${mappedInput[child].weight} => ${JSON.stringify(mappedInput[child].children.map(getTotalWeight))}`))
       return false;
     }
-
+1
     return true;
   }
 
