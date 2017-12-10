@@ -41,8 +41,8 @@ function run(series, input, startPosition = 0, skipSize = 0) {
     return { result, index, skipSize }
 }
 
-const testResult = run([0, 1, 2, 3, 4], [3, 4, 1, 5]);
-console.log('example', testResult[0] * testResult[1]);
+const testResults = run([0, 1, 2, 3, 4], [3, 4, 1, 5]);
+console.log('example', testResults.result[0] * testResults.result[1]);
 
 const inputString = '183,0,31,146,254,240,223,150,2,206,161,1,255,232,199,88';
 const input = inputString.split(',').map(x => +x);
