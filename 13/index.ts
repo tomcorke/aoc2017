@@ -1,4 +1,4 @@
-const { performance } = require('perf_hooks');
+import { performance } from 'perf_hooks';
 
 const testInputStrings = `0: 3
 1: 2
@@ -6,9 +6,16 @@ const testInputStrings = `0: 3
 6: 4`.split('\n');
 
 class Layer {
-  constructor(depth, range) {
+  depth: number;
+  range: number;
+  phase: number;
+  scanIndex: number;
+  scanDirection: number;
+
+  constructor(depth: number, range: number) {
     this.depth = depth;
     this.range = range;
+    this.phase = range * 2 - 1;
     this.reset();
   }
   reset() {
@@ -24,19 +31,25 @@ class Layer {
   }
 }
 
-function parse(input) {
+type LayerMap = {
+  [depth: number]: Layer
+}
+
+function parse(input: string[]) {
   const pattern = /(\d+): (\d+)/;
   return input
-    .reduce((layers, line) => {
-      const [_, depth, range] = pattern.exec(line);
-      layers[depth] = new Layer(+depth, +range);
+    .reduce((layers: LayerMap, line) => {
+      const m = pattern.exec(line);
+      const depth: string = m![1];
+      const range: string = m![2];
+      layers[+depth] = new Layer(+depth, +range);
       return layers;
     }, {});
 }
 
-function run(layers) {
+function run(layers: LayerMap) {
 
-  const layerArray = Object.keys(layers).map(k => layers[k]);
+  const layerArray = Object.keys(layers).map(k => layers[+k]);
 
   const maxDepth = Math.max(...layerArray.map(l => l.depth));
 
@@ -58,13 +71,9 @@ function run(layers) {
   return severity;
 }
 
-function findDelay(layers) {
+function findDelay(layers: LayerMap) {
 
-  const layerArray = Object.keys(layers).map(k => layers[k]);
-
-  layerArray.forEach(layer => {
-    layer.phase = layer.range * 2 - 1;
-  });
+  const layerArray = Object.keys(layers).map(k => layers[+k]);
 
   let delay = -1;
   let caught = true;
