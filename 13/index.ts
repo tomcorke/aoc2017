@@ -9,25 +9,11 @@ class Layer {
   depth: number;
   range: number;
   phase: number;
-  scanIndex: number;
-  scanDirection: number;
 
   constructor(depth: number, range: number) {
     this.depth = depth;
     this.range = range;
     this.phase = range * 2 - 1;
-    this.reset();
-  }
-  reset() {
-    this.scanIndex = 0;
-    this.scanDirection = 1;
-  }
-  scan() {
-    this.scanIndex += this.scanDirection;
-    if (this.scanIndex >= this.range - 1 || this.scanIndex === 0) {
-      this.scanDirection = 0 - this.scanDirection;
-    }
-    return this.scanIndex;
   }
 }
 
@@ -53,20 +39,21 @@ function run(layers: LayerMap) {
 
   const maxDepth = Math.max(...layerArray.map(l => l.depth));
 
-  layerArray.forEach(layer => layer.reset());
-
-  let severity = null;
-
-  for (let l = 0; l <= maxDepth; l++) {
-    if (layers[l] && layers[l].scanIndex === 0) {
-      console.log(`Caught on layer ${l}, severity: ${l * layers[l].range}`);
-      severity = (severity || 0) + l * layers[l].range;
+  let isCaught = false;
+  const severity = layerArray.reduce((severity, layer) => {
+    if (layer.depth % (layer.phase - 1) === 0) {
+      isCaught = true;
+      const layerSeverity = layer.depth * layer.range;
+      return severity + layerSeverity;
     }
-    layerArray.forEach(layer => layer.scan());
-  }
+    return severity;
+  }, 0);
 
-  console.log(`Total severity: ${severity}`);
-  console.log('');
+  if (isCaught) {
+    console.log(`Total severity: ${severity}`);
+  } else {
+    console.log('Not caught');
+  }
 
   return severity;
 }
@@ -135,15 +122,21 @@ const inputStrings = `0: 5
 90: 18
 92: 17`.split('\n');
 
+
+function time(func: Function) {
+  const start = performance.now();
+  func();
+  const time = performance.now() - start;
+  console.log(`Time: ${Math.floor(time * 10) / 10}ms`);
+  console.log('');
+}
+
 const input = parse(inputStrings);
-run(input);
+time(() => run(input));
 
 // Part 2
 
 findDelay(testInput);
 
 const start = performance.now();
-findDelay(input);
-const end = performance.now();
-const time = end - start;
-console.log(`Time to calc: ${Math.floor(time * 10) / 10}ms`);
+time(() => findDelay(input));
