@@ -58,7 +58,7 @@ function run(layers) {
   return severity;
 }
 
-function calcDelay(layers) {
+function findDelay(layers) {
 
   const layerArray = Object.keys(layers).map(k => layers[k]);
 
@@ -131,10 +131,10 @@ run(input);
 
 // Part 2
 
-calcDelay(testInput);
+findDelay(testInput);
 
 const start = performance.now();
-calcDelay(input);
+findDelay(input);
 const end = performance.now();
 const time = end - start;
 console.log(`Time to calc: ${Math.floor(time * 10) / 10}ms`);
