@@ -45,8 +45,8 @@ function run(
     if (i % 1000000 === 0) {
       console.log(`Iterations: ${i}..`);
     }
-    const binaryA = valueA.toString(2).substr(-16).padStart(16, '0');
-    const binaryB = valueB.toString(2).substr(-16).padStart(16, '0');
+    const binaryA = valueA & 65535;
+    const binaryB = valueB & 65535;
 
     if (binaryA === binaryB) {
       matchCount += 1;
@@ -66,6 +66,8 @@ function time(func: Function) {
 }
 
 // time(() => run(65, 8921));
+
+time(() => run(512, 191))
 
 /*
 time(() => run(65, 8921,
