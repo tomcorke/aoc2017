@@ -1,3 +1,5 @@
+import * as path from 'path';
+import * as fs from 'fs';
 import { performance } from 'perf_hooks';
 
 function time(func: Function) {
@@ -9,6 +11,11 @@ function time(func: Function) {
   return result;
 }
 
+function readFile(relativeFilePath: string) {
+  return fs.readFileSync(path.resolve(__dirname, relativeFilePath), 'utf8');
+}
+
 export {
-  time
+  time,
+  readFile
 }
