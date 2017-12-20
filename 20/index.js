@@ -9,6 +9,18 @@ class Vector {
     get magnitude() {
         return Math.abs(this.x) + Math.abs(this.y) + Math.abs(this.z);
     }
+    add(v) {
+        return new Vector(
+            this.x + v.x,
+            this.y + v.y,
+            this.z + v.z
+        );
+    }
+    equals(v) {
+        return this.x === v.x
+             && this.y === v.y
+             && this.z === v.z;
+    }
 }
 
 class Particle {
@@ -18,7 +30,7 @@ class Particle {
         this.v = velocity;
         this.a = acceleration;
         this.minimumDist = this.p.magnitude;
-        this.movedCloser = false;
+        this.movingCloser = true;
     }
     move() {
         this.v = this.v.add(this.a);
@@ -26,55 +38,50 @@ class Particle {
         const dist = this.p.magnitude;
         if (dist <= this.minimumDist) {
             this.minimumDist = dist;
-            this.movedCloser = true;
+            this.movingCloser = true;
+        } else if (this.p.add(this.v.add(this.a)).magnitude < dist) {
+            this.movingCloser = true;
         } else {
-            this.movedCloser = false;
+            this.movingCloser = false;
         }
     }
 }
 
 function parse(line, index) {
-    const pattern = /p=<(-?\d+),(-?\d+),(-?\d+)>, v=<(-?\d+),(-?\d+),(-?\d+)>, a=<(-?\d+),(-?\d+),(-?\d+)>/
+    const pattern = /p=<\s?(-?\d+),\s?(-?\d+),\s?(-?\d+)>, v=<\s?(-?\d+),\s?(-?\d+),\s?(-?\d+)>, a=<\s?(-?\d+),\s?(-?\d+),\s?(-?\d+)>/
     const m = pattern.exec(line);
     return new Particle(
         index,
         new Vector(m[1], m[2], m[3]),
         new Vector(m[4], m[5], m[6]),
-        new Vector(m[5], m[6], m[7]),
+        new Vector(m[7], m[8], m[9]),
     );
 }
-
-const input = readFile('20/input.txt').split('\n').map(parse);
 
 function sign(n) {
     return n < 0 ? -1 : 1;
 }
 
-function run(input) {
-    
-/*
-    while (!input.every(particle => !particle.movedCloser)) {
-        input.forEach(particle => particle.move());
-    }
-*/
-
-    console.log(Math.min(...input.map(p => p.index)), Math.max(...input.map(p => p.index)));
-
-    const sortedByMinimumDistance = input.sort((a, b) => a.minimumDist - b.minimumDist);
-    const closest = sortedByMinimumDistance[0];
-    
-    const sortedByAcceleration = input.sort((a, b) => a.a.magnitude - b.a.magnitude);
-    const slowestAcceleration = sortedByAcceleration[0].a.magnitude;
-
-    const jointSlowestAcceleration = input.filter(p => p.a.magnitude === slowestAcceleration);
-    const slowestSlowest = jointSlowestAcceleration.sort((a, b) => a.v.magnitude - b.v.magnitude);
-    const slowestAccelerationVelocity = slowestSlowest[0].v.magnitude;
-
-    const jointSlowestAccelerationVelocity = input.filter(p => p.v.magnitude === slowestAccelerationVelocity);
-    const slowestSlowestClosest = jointSlowestAccelerationVelocity.sort((a, b) => a.p.magnitude - b.p.magnitude);
-    
-
-    console.log(sortedByAcceleration.slice(0, 5));
+function part1(input) {
+    const slowest = input.sort((a, b) => a.a.magnitude - b.a.magnitude);
+    console.log('Slowest particle:', slowest[0]);
 }
 
-run(input);
+function part2(input) {
+    input.filter(particle => !input.some(other => particle.index != other.index && particle.p.equals(other.p)));
+    while (!input.every(particle => !particle.movingCloser)) {
+        input.forEach(particle => particle.move());
+        input = input.filter(particle => !input.some(other => particle.index != other.index && particle.p.equals(other.p)));
+    }
+    console.log(`Particles remaining: ${input.length}`);
+}
+
+const testInput = readFile('20/testInput.txt').split('\n').map(parse);
+part1(testInput);
+
+const testInput2 = readFile('20/testInput2.txt').split('\n').map(parse);
+part2(testInput2);
+
+const input = readFile('20/input.txt').split('\n').map(parse);
+part1(input);
+part2(input);
