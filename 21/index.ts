@@ -1,5 +1,6 @@
 
-import { readFile } from '../util';
+require('source-map-support').install();
+import { readFile, time, profiled, printProfileResults } from '../util';
 
 const INITIAL_STATE = '.#.'
                     + '..#'
@@ -13,7 +14,6 @@ function doSplit(pattern: string, n: number): string[] {
   const newSize = size(pattern) / n;
   const results: string[][] = [];
   const s = size(pattern);
-
   for (let y = 0; y < s; y++) {
     for (let x = 0; x < s; x++) {
       const i = (y * s) + x;
@@ -26,6 +26,7 @@ function doSplit(pattern: string, n: number): string[] {
   return result;
 }
 
+const split = profiled<string[]>(
 function split(pattern: string): string[] {
   const s = size(pattern);
   if (s === 3) {
@@ -37,7 +38,9 @@ function split(pattern: string): string[] {
   }
   throw `Failed to split pattern "${pattern}", not divisible by 2 or 3 (${s})!`;
 }
+)
 
+const join = profiled<string>(
 function join(patterns: string[]): string {
   const ps = Math.sqrt(patterns.length);
   const s = size(patterns[0]);
@@ -58,6 +61,7 @@ function join(patterns: string[]): string {
 
   return result.join('');
 }
+)
 
 function map(pattern: string, maps: string[][]): string {
   const m = maps.find(m => m[0].length === pattern.length);
@@ -74,8 +78,7 @@ function spin(pattern: string, times: number = 1): string {
   for (let i = 0; i < times; i++) {
     result = map(result, [
       ['abcd', 'cadb'],
-      ['abcdefghi', 'gdahebifc'],
-      ['abcdefghijklmnop', 'mieanjfbokgcplhd'],
+      ['abcdefghi', 'gdahebifc']
     ]);
   }
   return result;
@@ -84,16 +87,7 @@ function spin(pattern: string, times: number = 1): string {
 function fliph(pattern: string): string {
   return map(pattern, [
     ['abcd', 'badc'],
-    ['abcdefghi', 'cbafedihg'],
-    ['abcdefghijklmnop', 'dcbahgfelkjiponm'],
-  ]);
-}
-
-function flipv(pattern: string): string {
-  return map(pattern, [
-    ['abcd', 'cdab'],
-    ['abcdefghi', 'ghidefabc'],
-    ['abcdefghijklmnop', 'mnopijklefghabcd'],
+    ['abcdefghi', 'cbafedihg']
   ]);
 }
 
@@ -107,41 +101,33 @@ function variations(pattern: string): string[] {
     spin(fliph(pattern), 1),
     spin(fliph(pattern), 2),
     spin(fliph(pattern), 3),
-    // flipv(pattern),          duplicate of spin(fliph(), 2)
-    // spin(flipv(pattern), 1), duplicate of spin(fliph(), 3)
-    // spin(flipv(pattern), 2), duplicate of fliph()
-    // spin(flipv(pattern), 3), duplicate of spin(fliph(), 1)
   ]
 }
 
-function findRule(pattern: string, rules: string[][]): string[] | undefined {
-  const v = variations(pattern);
-  return rules.find(r => v.some(v => v === r[0]));
+type Rules = { [pattern: string]: string }
+
+function enhance(pattern: string, rules: Rules): string {
+  return rules[pattern];
 }
 
-function enhance(pattern: string, rules: string[][]): string {
-  const rule = findRule(pattern, rules);
-  if (!rule) { throw `No rule found matching pattern "${pattern}"`; }
-  return rule[1];
-}
-
-function process(pattern: string, rules: string[][], iterations = 1): string {
+function process(pattern: string, rules: Rules, iterations = 1): string {
   let result = pattern;
   prettyprint(pattern);
   console.log('');
-  for(let i = 0; i < iterations; i++) {
 
+  for(let i = 0; i < iterations; i++) {
     const splitPatterns = split(result);
-    prettyprintsplits(splitPatterns);
+    //prettyprintsplits(splitPatterns);
     const enhanced = splitPatterns.map(p => enhance(p, rules));
-    prettyprintsplits(enhanced);
+    //prettyprintsplits(enhanced);
     result = join(enhanced);
 
-    prettyprint(result);
+    //prettyprint(result);
 
     console.log((result.match(/#/g) || []).length);
     console.log('');
   }
+
   return result;
 }
 
@@ -169,17 +155,36 @@ function prettyprint(pattern: string) {
   }
 }
 
-function parseRule(line: string): string[] {
-  return line.split(' => ').map(s => s.replace(/\//g, ''));
+function parseRule(line: string): Rules {
+  const parts = line.split(' => ').map(s => s.replace(/\//g, ''));
+  const patterns = variations(parts[0]);
+  return patterns.reduce((rules: Rules, pattern: string) => {
+    return Object.assign(
+      rules,
+      { [pattern]: parts[1] },
+    );
+  }, {});
 }
 
-const testInputRules = readFile('21/testInput.txt').split('\n').map(parseRule);
-const inputRules = readFile('21/input.txt').split('\n').map(parseRule);
-const otherInputRules = readFile('21/otherInput.txt').split('\n').map(parseRule);
+function parseRules(lines: string[]): Rules {
+  return lines.reduce((rules: Rules, line: string) => {
+    return Object.assign(
+      rules,
+      parseRule(line),
+    );
+  }, {});
+}
+
+const testInputRules = parseRules(readFile('21/testInput.txt').split('\n'));
+const inputRules = parseRules(readFile('21/input.txt').split('\n'));
+const otherInputRules = parseRules(readFile('21/otherInput.txt').split('\n'));
 
 // console.log(join(split('1111222233334444')));
 
-// process(INITIAL_STATE, testInputRules, 2);
+process(INITIAL_STATE, testInputRules, 2);
 
-const result = process(INITIAL_STATE, inputRules, 18);
+time(() => process(INITIAL_STATE, inputRules, 5));
+
+const result = time(() => process(INITIAL_STATE, inputRules, 18));
+printProfileResults();
 // console.log((result.match(/#/g) || []).length);

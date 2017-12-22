@@ -63,3 +63,6 @@ typings/
 /15/index.js
 /14/knotHash.js
 /util.js
+*.js.map
+/21/index.js
+/18/part2.js
