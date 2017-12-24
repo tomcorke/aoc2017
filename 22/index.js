@@ -1,4 +1,4 @@
-const { readFile } = require('../util');
+const { readFile, time } = require('../util');
 
 function parse(textData) {
     const lines = textData.split('\n').map(s => s.trim());
@@ -117,4 +117,6 @@ part1(getInputGrid(), 10000);
 
 part2(getTestInputGrid());
 // part2(getTestInputGrid(), 10000000);
-part2(getInputGrid(), 10000000);
+time(() => {
+    part2(getInputGrid(), 10000000);
+});
